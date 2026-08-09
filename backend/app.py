@@ -6,7 +6,7 @@ from pydantic import BaseModel
 import pandas as pd
 import os
 
-from predict_pipeline import predict_disease
+from backend.predict_pipeline import predict_disease
 
 app = FastAPI()
 
