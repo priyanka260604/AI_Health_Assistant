@@ -1,6 +1,5 @@
 import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const API_URL = "https://aihealthassistant-ibpq.onrender.com";
 
 export const predictDisease = async (symptoms) => {
   const response = await axios.post(
