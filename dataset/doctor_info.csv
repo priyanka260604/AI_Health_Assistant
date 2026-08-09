@@ -1,0 +1,18 @@
+Disease,Doctor,Specialization
+Fungal infection,Dermatologist,Skin Specialist
+Allergy,Allergist,Allergy Specialist
+GERD,Gastroenterologist,Stomach Specialist
+Chronic cholestasis,Hepatologist,Liver Specialist
+Drug Reaction,General Physician,General Medicine
+Peptic ulcer disease,Gastroenterologist,Stomach Specialist
+AIDS,Infectious Disease Specialist,Infectious Diseases
+Diabetes,Endocrinologist,Hormone & Diabetes Specialist
+Hypertension,Cardiologist,Heart Specialist
+Migraine,Neurologist,Brain & Nervous System
+Bronchial Asthma,Pulmonologist,Lung Specialist
+Pneumonia,Pulmonologist,Lung Specialist
+Jaundice,Hepatologist,Liver Specialist
+Malaria,General Physician,General Medicine
+Typhoid,General Physician,General Medicine
+Dengue,General Physician,General Medicine
+Chicken pox,Dermatologist,Skin Specialist
