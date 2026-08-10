@@ -2,54 +2,115 @@ import numpy as np
 import joblib
 from pathlib import Path
 
-# Project root directory
-BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Artifacts directory
+# -----------------------------------------
+# PATHS
+# -----------------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 ARTIFACTS_DIR = BASE_DIR / "artifacts"
 
-# Model files
 MODEL_PATH = ARTIFACTS_DIR / "model.pkl"
-MLB_PATH = ARTIFACTS_DIR / "mlb.pkl"
 LABEL_ENCODER_PATH = ARTIFACTS_DIR / "label_encoder.pkl"
 
-# Load trained objects
+
+# -----------------------------------------
+# LOAD MODEL
+# -----------------------------------------
+
 model = joblib.load(MODEL_PATH)
-mlb = joblib.load(MLB_PATH)
 label_encoder = joblib.load(LABEL_ENCODER_PATH)
 
 
+# -----------------------------------------
+# GET EXACT FEATURES USED BY MODEL
+# -----------------------------------------
+
+MODEL_FEATURES = list(model.feature_names_in_)
+
+# Normalize feature names for matching
+NORMALIZED_FEATURES = {
+    feature.strip().lower(): feature
+    for feature in MODEL_FEATURES
+}
+
+
+# -----------------------------------------
+# PREDICT DISEASE
+# -----------------------------------------
+
 def predict_disease(user_symptoms):
-    """
-    Predict disease from a list of symptoms.
 
-    Example:
-        ["fever", "cough", "headache"]
-    """
-
-    # Clean input symptoms
-    user_symptoms = [
+    # Clean user input
+    user_symptoms = {
         symptom.strip().lower()
         for symptom in user_symptoms
-        if symptom.strip()
-    ]
+        if symptom and symptom.strip()
+    }
 
-    # Create empty feature vector
-    features = np.zeros(len(mlb.classes_), dtype=int)
+    # Create feature vector using EXACT model columns
+    features = np.zeros(
+        len(MODEL_FEATURES),
+        dtype=int
+    )
 
-    # Convert symptoms to the same binary representation
-    for i, symptom in enumerate(mlb.classes_):
-        if symptom.lower() in user_symptoms:
+    # Match symptoms
+    for i, feature in enumerate(MODEL_FEATURES):
+
+        normalized_feature = feature.strip().lower()
+
+        if normalized_feature in user_symptoms:
             features[i] = 1
 
-    # Make prediction
-    prediction = model.predict([features])[0]
+    # Create DataFrame with correct feature names
+    import pandas as pd
 
-    # Get confidence
-    probabilities = model.predict_proba([features])[0]
-    confidence = float(np.max(probabilities) * 100)
+    feature_df = pd.DataFrame(
+        [features],
+        columns=MODEL_FEATURES
+    )
 
-    # Decode disease
-    disease = label_encoder.inverse_transform([prediction])[0]
+    # Prediction
+    prediction = model.predict(feature_df)[0]
 
-    return disease, round(confidence, 2)
+    # Probability
+    probabilities = model.predict_proba(feature_df)[0]
+
+    # Top 3 predictions
+    top_indices = np.argsort(
+        probabilities
+    )[::-1][:3]
+
+    top_predictions = []
+
+    for index in top_indices:
+
+        class_number = model.classes_[index]
+
+        disease = label_encoder.inverse_transform(
+            [class_number]
+        )[0]
+
+        confidence = float(
+            probabilities[index] * 100
+        )
+
+        top_predictions.append({
+            "disease": disease,
+            "confidence": round(confidence, 2)
+        })
+
+    # Main prediction
+    disease = label_encoder.inverse_transform(
+        [prediction]
+    )[0]
+
+    confidence = float(
+        np.max(probabilities) * 100
+    )
+
+    return {
+        "disease": disease,
+        "confidence": round(confidence, 2),
+        "top_predictions": top_predictions
+    }
